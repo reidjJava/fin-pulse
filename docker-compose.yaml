@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  app:
+    container_name: spring-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - clickhouse
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:ch://localhost:8123/clickhousedb
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.clickhouse.jdbc.ClickHouseDriver
+      SPRING_DATASOURCE_USERNAME: dbuser
+      SPRING_DATASOURCE_PASSWORD: password
+    networks:
+      - app-network
+
+  clickhouse:
+    container_name: some-clickhouse-server
+    image: clickhouse/clickhouse-server
+    ports:
+      - "8123:8123"
+    volumes:
+      - /src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
